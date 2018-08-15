@@ -9,7 +9,7 @@
         </div>
       </li>
       <li class="file-item default-add-file"  v-show="canUpload && inCount">
-        <input id="inputArea" class="file-input" type="file" value="" @change="initFileStatus"/>
+        <input id="inputArea" ref="inputArea" class="file-input" type="file" value="" @change="initFileStatus"/>
       </li>
     </ul>
     <self-modal ref="imgModal">
@@ -89,6 +89,7 @@ export default {
       this.tarImg = tarImg
     },
     deleteImage (index) {
+      this.$ref.inputArea.value = '' // 每一次删除文件情况input[type="file"]的value值,解决重复上传相同image不触发change 事件的bug
       this.imgFileUrl.splice(index, 1)
       this.isContinueUpload()
     },
