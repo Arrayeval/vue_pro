@@ -1,10 +1,19 @@
-<template>
+ <template>
   <div class="img-upload-wrapper"  @touchmove.stop.prevent>
+    <!--初步上上传的img-->
+    <canvas id="imgCanvas" height='0' width='0' class="init-canavas"></canvas><!--height='300' width='300'-->
+    <!--截裁之后的img-->
+    <canvas id="resultCanvas" height='0' width='0'  class="result-canavas"></canvas><!--height='100' width='200'-->
+    <p class="action-btn-group" v-show="showBtnGroup">
+      <button class="sure-btn" @click="sureImage" v-show="canView">确定</button>
+      <button class="sure-btn" @click="cancelImage"  v-show="canDelete">取消</button>
+    </p>
     <ul class="file-list-wrapper">
       <li class="file-item" v-for="(item, index) in imgFileUrl" :key="index" >
         <img :src="item.imgUrl" alt="fileImg" class="img-show">
         <div class="modal-show">
           <span class="show-image" @click="showImage(item.imgUrl)"></span>
+          <span class="cut-image"  @click="cutData(item.imgUrl)"></span>
           <span class="delete-image" @click="deleteImage(index)"></span>
         </div>
       </li>
@@ -15,27 +24,26 @@
     <self-modal ref="imgModal">
       <img :src="tarImg" alt="showImg" class="img-dis" id="image"/>
     </self-modal>
-    <!--初步上上传的img-->
-    <canvas id="imgCanvas" height='300' width='300'></canvas>
-    <!--截裁之后的img-->
-    <canvas id="resultCanvas" height='100' width='200'></canvas>
-    <p class="action-btn-group" v-show="showBtnGroup">
-      <button class="sure-btn" @click="sureImage" v-show="canView">确定</button>
-      <button class="sure-btn" @click="cancelImage"  v-show="canDelete">取消</button>
-    </p>
   </div>
 </template>
 <script>
 import SelfModal from '@/base/selfModal/modal'
+import {IsPC} from '@/utils/common'
 export default {
   name: 'FileUpload',
   data () {
     return {
+      isPC: true,
       showBtnGroup: false,
       inCount: true,
       imgFileUrl: [],
       tarImg: '',
       img: '',
+      flag: false, // 记录是否为点击状态的标记
+      W: '',
+      H: '',
+      startX: '',
+      startY: '',
       theCanvas: '',
       canvasImg: '',
       resultCanvas: '',
@@ -46,7 +54,7 @@ export default {
   },
   props: {
     canCut: { // 用于控制是否支持裁剪功能
-      default: false,
+      default: true,
       type: Boolean
     },
     canView: {
@@ -89,8 +97,9 @@ export default {
       this.tarImg = tarImg
     },
     deleteImage (index) {
-      this.$ref.inputArea.value = '' // 每一次删除文件情况input[type="file"]的value值,解决重复上传相同image不触发change 事件的bug
+      this.$refs.inputArea.value = '' // 每一次删除文件情况input[type="file"]的value值,解决重复上传相同image不触发change 事件的bug
       this.imgFileUrl.splice(index, 1)
+
       this.isContinueUpload()
     },
     initFileStatus () {
@@ -130,70 +139,102 @@ export default {
     },
     initResultCanvas (cutData, tarCanvas) {
       if (tarCanvas && Object.keys(tarCanvas).indexOf('putImageData')) {
+        // 重置canvas的大小
+        this.theCanvas.width = cutData.width
+        this.theCanvas.height = cutData.height
         tarCanvas.putImageData(cutData, 0, 0)
       }
     },
 
+    traceDown (e) {
+      this.flag = true
+      if (!this.isPC) {
+        e = e.touches[0]
+      }
+      // 改变标记状态，置为点击状态
+      this.startX = e.clientX
+      // 获得起始点横坐标
+      this.startY = e.clientY
+      // 获得起始点纵坐标
+    },
+    traceMove (e, flag, startX, startY, W, H) {
+      if (flag) {
+        if (!this.isPC) {
+          e = e.touches[0]
+        }
+        this.canvasImg.clearRect(0, 0, W, H)
+        this.resultImg.clearRect(0, 0, this.cutData.width, this.cutData.height)
+        this.canvasImg.drawImage(this.img, 0, 0)
+        this.canvasImg.fillStyle = 'rgba(137,141,137, 0.6)' // 设定半透明的白色
+        this.canvasImg.fillRect(0, 0, e.clientX, startY)
+        this.canvasImg.fillRect(e.clientX, 0, W, e.clientY)
+        this.canvasImg.fillRect(startX, e.clientY, W - startX, H - e.clientY)
+        this.canvasImg.fillRect(0, startY, startX, H - startY)
+        var sourceWidth = 1
+        var sourceHeight = 1
+        if (e.clientX - startX !== 0) {
+          sourceWidth = e.clientX - startX
+        }
+        if (e.clientY - startY !== 0) {
+          sourceHeight = e.clientY - startY
+        }
+        this.cutData = this.canvasImg.getImageData(startX, startY, sourceWidth, sourceHeight)
+        // 绘制裁剪之后的image
+        // this.resultImg.putImageData(this.cutData, 0, 0)
+        // this.initResultCanvas(this.cutData, this.resultImg)
+      }
+    },
+    traceUp (e, flag) {
+      this.showBtnGroup = true
+      // this.resultCanvas.toBlob(blob => {
+      //   this.resultFile = blob
+      //   console.log(blob)
+      // })
+      this.flag = false
+    },
+
     // 监听用户的鼠标移动,获取截裁img
     listenerMoveMouse () {
-      var flag = false // 记录是否为点击状态的标记
-      var W = this.img.width
-      var H = this.img.height
-      var startX = 0
-      var startY = 0
-      this.theCanvas.addEventListener('mousedown', (e) => {
-        flag = true
-        // 改变标记状态，置为点击状态
-        startX = e.clientX
-        // 获得起始点横坐标
-        startY = e.clientY
-        // 获得起始点纵坐标
+      this.flag = false // 记录是否为点击状态的标记
+      this.W = this.img.width
+      this.H = this.img.height
+      this.startX = 0
+      this.startY = 0
+      var down = 'touchstart'
+      var move = 'touchmove'
+      var up = 'touchend'
+      if (this.isPC) {
+        down = 'moousedown'
+        move = 'moousemove'
+        up = 'moouseup'
+      }
+      this.theCanvas.addEventListener(down, (e) => {
+        this.traceDown(e)
       })
-      this.theCanvas.addEventListener('mousemove', (e) => {
-        if (flag) {
-          this.canvasImg.clearRect(0, 0, W, H)
-          this.resultImg.clearRect(0, 0, this.cutData.width, this.cutData.height)
-          this.canvasImg.drawImage(this.img, 0, 0)
-          this.canvasImg.fillStyle = 'rgba(255, 255, 255, 0.6)' // 设定半透明的白色
-          this.canvasImg.fillRect(0, 0, e.clientX, startY)
-          this.canvasImg.fillRect(e.clientX, 0, W, e.clientY)
-          this.canvasImg.fillRect(startX, e.clientY, W - startX, H - e.clientY)
-          this.canvasImg.fillRect(0, startY, startX, H - startY)
-          var sourceWidth = 1
-          var sourceHeight = 1
-          if (e.clientX - startX !== 0) {
-            sourceWidth = e.clientX - startX
-          }
-          if (e.clientY - startY !== 0) {
-            sourceHeight = e.clientY - startY
-          }
-          this.cutData = this.canvasImg.getImageData(startX, startY, sourceWidth, sourceHeight)
-          // 绘制裁剪之后的image
-          // this.resultImg.putImageData(this.cutData, 0, 0)
-          // this.initResultCanvas(this.cutData, this.resultImg)
-        }
+      this.theCanvas.addEventListener(move, (e) => {
+        this.traceMove(e, this.flag, this.startX, this.startY, this.W, this.H)
       })
-      this.theCanvas.addEventListener('mouseup', (e) => {
-        this.showBtnGroup = true
-        // this.resultCanvas.toBlob(blob => {
-        //   this.resultFile = blob
-        //   console.log(blob)
-        // })
-        flag = false
+      this.theCanvas.addEventListener(up, (e) => {
+        this.traceUp(e, this.flag)
       })
     },
+    // 点击"确定"
     sureImage () {
       this.showBtnGroup = false
       this.canvasImg.clearRect(0, 0, this.img.width, this.img.height)
       this.initResultCanvas(this.cutData, this.canvasImg)
     },
+    // 点击"取消"
     cancelImage () {
       this.showBtnGroup = false
       this.canvasImg.clearRect(0, 0, this.img.width, this.img.height)
       this.resultImg.clearRect(0, 0, this.cutData.width, this.cutData.height)
       this.canvasImg.drawImage(this.img, 0, 0) // 设定半透明的白色
-      this.canvasImg.fillStyle = 'rgba(255, 255, 255, 0.6)'
+      this.canvasImg.fillStyle = 'rgba(137,141,137, 0.6)'
     }
+  },
+  created () {
+    this.isPC = IsPC()
   },
   components: {
     SelfModal
@@ -202,6 +243,8 @@ export default {
 </script>
 <style lang="scss" scoped>
 @import '~/sass/mixin.scss';
+.img-upload-wrapper{
+  text-align: left;
   .file-list-wrapper{
     display:flex;
     flex-wrap: wrap;
@@ -231,14 +274,14 @@ export default {
           display: inline-block;
           width:.4rem;
           height:.4rem;
-          background: url("../../assets/icons/empty.svg")  no-repeat ;
+          background: url("../../assets/empty.svg")  no-repeat ;
         }
         .show-image{
-          background: url("../../assets/icons/view.svg")  no-repeat ;
+          background: url("../../assets/view.svg")  no-repeat ;
         }
       }
       &.default-add-file{
-        background: url("../../assets/icons/img-upload.png")  no-repeat ;
+        background: url("../../assets/LoanRepay/img-upload.png")  no-repeat ;
         background-size:contain;
         .file-input{
           width:1.2rem;
@@ -256,4 +299,13 @@ export default {
     margin: 0 auto;
     @include postion-center;
   }
+  .init-canavas{
+    position: relative;
+    left:0;
+  }
+  .result-canavas{
+    position: relative;
+    left:0;
+  }
+}
 </style>
