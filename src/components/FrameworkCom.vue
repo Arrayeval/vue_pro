@@ -44,7 +44,7 @@ export default {
 }
 </script>
 <style lang='scss' scoped>
-@import '~/sass/mixin.scss';
+@import '~/scss/mixin.scss';
 .main-container{
     padding: 1.2rem 0.3rem 0;
     .f-wrappper{
