@@ -242,7 +242,7 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-@import '~/sass/mixin.scss';
+@import '~/scss/mixin.scss';
 .img-upload-wrapper{
   text-align: left;
   .file-list-wrapper{
@@ -274,14 +274,14 @@ export default {
           display: inline-block;
           width:.4rem;
           height:.4rem;
-          background: url("../../assets/empty.svg")  no-repeat ;
+          background: url("../../assets/icons/empty.svg")  no-repeat ;
         }
         .show-image{
-          background: url("../../assets/view.svg")  no-repeat ;
+          background: url("../../assets/icons/view.svg")  no-repeat ;
         }
       }
       &.default-add-file{
-        background: url("../../assets/LoanRepay/img-upload.png")  no-repeat ;
+        background: url("../../assets/icons/img-upload.png")  no-repeat ;
         background-size:contain;
         .file-input{
           width:1.2rem;
