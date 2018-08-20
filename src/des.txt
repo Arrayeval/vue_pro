@@ -8,5 +8,5 @@ webpack.base.config.js下面：
 
 <style lang="scss" scoped="" type="text/css"> //你的sass语言 $primary-color: #333; body { color: $primary-color; //编译后就成了 color:#333;类似于js的变量！ } </style>
 
-
+网站性能优化：https://juejin.im/post/5b6fa8c86fb9a0099910ac91
  
