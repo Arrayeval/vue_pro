@@ -47,6 +47,8 @@ export default {
 @import '~/scss/mixin.scss';
 .main-container{
     padding: 1.2rem 0.3rem 0;
+    // @include postion-center;
+    // @include bg-image('../../../assets/frameIcon/yff_logo');
     .f-wrappper{
       margin-top: .2rem;
       .f-item{
