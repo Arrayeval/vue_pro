@@ -1,3 +1,4 @@
+// 样式居中
 @mixin postion-center {
   position: absolute;
   left: 50%;
@@ -5,6 +6,7 @@
   transform: translate(-50%,-50%)
 }
 
+// 屏幕适配
 @function px2rem($val) {
   @return #{$val*2/100}rem;
 }
@@ -16,3 +18,13 @@
       @return #{$val /375*100}vw;
   }
 }
+
+// 多倍图设置方案 [使用方式： @include bg-image('../../../assets/frameIcon/yff_logo');]
+@mixin bg-image ($url) {
+  background-image: url($url + "@2x.png");
+  @media (-webkit-min-device-pixel-ratio: 3),(min-device-pixel-ratio: 3) {
+      background-image: url($url + "@3x.png");
+  }
+}
+
+

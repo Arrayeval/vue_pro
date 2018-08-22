@@ -12,6 +12,7 @@
 import {basicList} from '@/modules/vueBasicList'
 import {moduleTab} from '@/modules/fontConfig'
 import {setInStorage}  from '@/utils/common.js'
+
 export default {
   data () {
     return {
