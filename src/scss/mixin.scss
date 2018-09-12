@@ -27,4 +27,24 @@
   }
 }
 
+/**
+使用方式
+.btn-deal-enter-active,.btn-deal-enter-to{
+  @include enter-active-to(0, 0.2s, 0.5s, 1);
+}
+.bnt-deal-enter {
+  @include  initial-enter(20px, 0);
+}
+**/
+// 动画样式 [目前只是针对 'SellStockOrder','DesSellStock']做的动画处理
+@mixin enter-active-to ($endY ,$duration, $delay, $opacity) { // $endY: 最终的偏移位置   $duration：持续时间  $delay: 动画延迟 $opacity: 透明度
+  transition: all $duration  cubic-bezier(0.0, 0.0, 0.2, 1) $delay;
+  transform: translateY($endY);
+  opacity: $opacity;
+}
+
+@mixin initial-enter ($startY, $opacity) { // $startY: 动画的起始偏移 $opacity: 透明度
+  transform: translateY($startY);
+  opacity: $opacity;
+}
 
