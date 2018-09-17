@@ -6,6 +6,7 @@ import {vueBasicRoute} from '@/router/vueBasic.js'
 import {jsBasicRoute} from '@/router/jsBasic.js'
 import {SelfComponentRoute} from '@/router/selfComponent.js'
 import {selfDirective} from '@/router/selfDirective.js'
+import {newSkillRoute} from '@/router/newSkill.js'
 
 import FrameworkCom from '@/components/FrameworkCom'
 
@@ -33,7 +34,8 @@ const router = new Router({
     ...vueBasicRoute,
     ...jsBasicRoute,
     ...SelfComponentRoute,
-    ...selfDirective
+    ...selfDirective,
+    ...newSkillRoute
   ]
 })
 

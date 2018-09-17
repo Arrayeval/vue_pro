@@ -18,6 +18,7 @@
     "http-errors": "~1.6.2",
     "mongoose": "^5.0.14",
     "morgan": "~1.9.0",
+    "normalizr": "^3.2.4",
     "pug": "^2.0.3",
     "vconsole": "^3.1.0",
     "vue": "^2.5.2",
